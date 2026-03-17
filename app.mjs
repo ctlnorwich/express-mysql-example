@@ -1,5 +1,5 @@
 import express, { json, urlencoded } from 'express';
-import { createPool } from 'mysql2';
+import { createPool } from 'mysql2/promise';
 import { loadEnvFile } from 'node:process';
 
 loadEnvFile();
@@ -20,60 +20,60 @@ app.set('view engine', 'ejs');
 const db = createPool(dbUrl);
 
 // Create contacts table if it doesn't exist
-db.query(`
-  CREATE TABLE IF NOT EXISTS contacts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL
-  )
-`, (err) => {
-  if (err) {
-    console.error('Error creating table:', err.message);
-  } else {
-    console.log('Contacts table ready');
+try {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL
+    )
+  `);
+  console.log('Contacts table ready');
+} catch (err) {
+  console.error('Error creating table:', err.message);
+  process.exit(1);
+}
+
+// Home — list all contacts + show add form
+app.get('/', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM contacts ORDER BY id DESC');
+    res.render('index', { contacts: rows });
+    // return res.json( { contacts: rows });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send('Database error');
   }
 });
 
-// Home — list all contacts + show add form
-app.get('/', (req, res) => {
-  db.query('SELECT * FROM contacts ORDER BY id DESC', (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Database error');
-    }
-    res.render('index', { contacts: results });
-    //  return res.json( { contacts: results });
-  });
-});
-
 // Add a new contact
-app.post('/add', (req, res) => {
+app.post('/add', async (req, res) => {
   const { name, email } = req.body;
   if (!name || !email) {
     return res.status(400).send('Name and email are required');
   }
-  db.query('INSERT INTO contacts (name, email) VALUES (?, ?)', [name, email], (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Database error');
-    }
+  try {
+    await db.query('INSERT INTO contacts (name, email) VALUES (?, ?)', [name, email]);
     res.redirect('/');
-  });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send('Database error');
+  }
 });
 
 // Delete a contact
-app.post('/delete/:id', (req, res) => {
+app.post('/delete/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).send('Invalid ID');
   }
-  db.query('DELETE FROM contacts WHERE id = ?', [id], (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Database error');
-    }
+  try {
+    await db.query('DELETE FROM contacts WHERE id = ?', [id]);
     res.redirect('/');
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Database error');
+  }
 });
 
 const PORT = process.env.PORT || 3000;
