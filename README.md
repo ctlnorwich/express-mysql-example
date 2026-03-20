@@ -6,6 +6,8 @@ A simple Node.js app using Express and MySQL to manage users.
 
 - EJS templating engine to demonstrate how to generate html markup using server-side views.
 
+- uses the `mysql2.createPool()` method for reusable database connections.
+
 - Simple authentication using `express-session`.
 
 ## Setup
