@@ -2,10 +2,10 @@
   "name": "express-mysql-example",
   "version": "0.0.1",
   "description": "A simple Express application using a MySQL database.",
-  "main": "app.mjs",
+  "main": "app.js",
   "scripts": {
-    "start": "node app.mjs",
-    "dev": "nodemon app.mjs"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "keywords": [
     "Express",
