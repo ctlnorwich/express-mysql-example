@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html lang="en-GB">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contacts App</title>
+  <title>MyUsersUsers App</title>
 </head>
+
 <body>
-  <h1>Contacts</h1>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1>MyUsers App</h1>
+    <div>
+      Logged in as <strong><%= userName %></strong>
+      <form action="/logout" method="POST" style="display:inline;">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  </div>
+
+  <h2>Add User</h2>
 
   <form action="/add" method="POST">
     <input type="text" name="name" placeholder="Name" required>
     <input type="email" name="email" placeholder="Email Address" required>
-    <button type="submit">Add Contact</button>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Add User</button>
   </form>
 
-  <% if (contacts.length > 0) { %>
+  <h2>List Users</h2>
+
+  <% if (users.length > 0) { %>
     <table>
       <thead>
         <tr>
@@ -24,12 +39,12 @@
         </tr>
       </thead>
       <tbody>
-        <% contacts.forEach(contact => { %>
+        <% users.forEach(user => { %>
           <tr>
-            <td><%= contact.name %></td>
-            <td><%= contact.email %></td>
+            <td><%= user.name %></td>
+            <td><%= user.email %></td>
             <td>
-              <form action="/delete/<%= contact.id %>" method="POST" style="display:inline;">
+              <form action="/delete/<%= user.id %>" method="POST" style="display:inline;">
                 <button type="submit" class="delete-btn">Delete</button>
               </form>
             </td>
@@ -38,7 +53,7 @@
       </tbody>
     </table>
   <% } else { %>
-    <p class="empty">No contacts yet. Add one above!</p>
+    <p class="empty">No users yet. Add one above!</p>
   <% } %>
 </body>
 </html>

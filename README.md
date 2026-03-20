@@ -1,6 +1,12 @@
-# Express MySQL Contacts App
+# Express MySQL Users App
 
-A simple Node.js app using Express and MySQL to manage contacts.
+A simple Node.js app using Express and MySQL to manage users.
+
+- ES Modules (ESM) with .mjs extensions - the offical standard for packaging JavaScript for reuse, now supported in Node.js
+
+- EJS templating engine to demonstrate how to generate html markup using server-side views.
+
+- Simple authentication using `express-session`.
 
 ## Setup
 
@@ -20,4 +26,4 @@ A simple Node.js app using Express and MySQL to manage contacts.
 
 3. Open [http://localhost:3000](http://localhost:3000)
 
-The `contacts` table is created automatically on first run.
+The `users` table is created automatically on first run.
