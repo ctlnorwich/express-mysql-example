@@ -25,6 +25,15 @@ app.use(session({
   saveUninitialized: false,
 }));
 
+app.use((req, res, next) => {
+    res.on('finish', () => {
+        console.log(`request url = ${req.originalUrl}`);
+        console.log(res.getHeaders());
+    });
+    next();
+});
+
+
 // Create MySQL connection using DB_URL environment variable
 const db = createPool(dbUrl);
 
@@ -86,6 +95,7 @@ app.post('/logout', (req, res) => {
 app.get('/', requireLogin, async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM users ORDER BY id DESC');
+
     res.render('index', { users: rows, userName: req.session.userName });
   } catch (err) {
     console.error(err);
