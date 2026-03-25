@@ -4,7 +4,15 @@ import { createPool } from 'mysql2/promise';
 import { loadEnvFile } from 'node:process';
 import { createHash, randomBytes } from 'node:crypto';
 
-loadEnvFile();
+
+try {
+  loadEnvFile();
+} catch (e) {
+  if (e.code !== 'ENOENT') {
+    throw e;
+  }
+}
+
 const dbUrl = process.env.DB_URL || "";
 
 const app = express();
