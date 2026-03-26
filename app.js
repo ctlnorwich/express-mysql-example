@@ -28,11 +28,12 @@ app.set('view engine', 'ejs');
 
 // Session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || randomBytes(32).toString('hex'),
+  secret: randomBytes(32).toString('hex'),
   resave: false,
   saveUninitialized: false,
 }));
 
+// Middleware to check response headers
 app.use((req, res, next) => {
     res.on('finish', () => {
         console.log(`request url = ${req.originalUrl}`);
@@ -111,6 +112,19 @@ app.get('/', requireLogin, async (req, res) => {
   }
 });
 
+// Home API - List all users
+app.get('/api', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM users ORDER BY id DESC');
+
+    res.json({ users: rows, userName: req.session.userName });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send('Database error');
+  }
+});
+
+
 // Add a new user
 app.post('/add', async (req, res) => {
   const { name, email, password } = req.body;
@@ -126,6 +140,33 @@ app.post('/add', async (req, res) => {
     return res.status(500).send('Database error');
   }
 });
+
+
+// Add a new user API
+app.post('/api/add', async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      error: 'Name, email, and password are required',
+    });
+  }
+  try {
+    const hashedPassword = md5(password);
+    const [result] = await db.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
+    return res.status(201).json({
+      message: 'User created successfully',
+      user: {
+        id: result.insertId,
+        name,
+        email,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Database error' });
+  }
+});
+
 
 // Delete a user
 app.post('/delete/:id', async (req, res) => {
