@@ -10,6 +10,7 @@ A simple Node.js app using Express and MySQL to manage users. This is intended a
 - Simple authentication using `express-session`.
 - MD5 password hashing (this should be swapped out for something more robust, such as bcrypt).
 - Doesn't use TypeScript, but could easily be adapted to do so - this would be a useful excercise!
+- Basic API endpoints for listing and adding users.
 
 ## Setup
 
