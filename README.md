@@ -1,6 +1,6 @@
 # Express MySQL Users App
 
-A simple Node.js app using Express and MySQL to manage users. This is intended as a starting point for learning about how express works with databases. The application allows anyone to create an account and delete all users including themselves, so it should be extended to include user permissions, form validation and enhanced password security.
+A simple Node.js app using Express and MySQL to manage users, intended as a starting point for learning about how Express works with databases. The application allows anyone to create an account and delete all users including themselves! It should be extended to include user permissions, form validation and enhanced password security.
 
 ## Features
 
@@ -14,18 +14,18 @@ A simple Node.js app using Express and MySQL to manage users. This is intended a
 
 ## Setup
 
-1. Set the `DB_URL` environment variable to your MySQL connection string:
+1. Set the `DB_URL` environment variable to your MySQL service URI:
 
    ```js
    DB_URL="mysql://<username>:<password>@<host>:<port>/<database_name>"
    ```
 
-2. Install dependencies and start:
+2. Install dependencies and start the server:
 
    ```js
    npm install
-   npm start // start the server
-   npm run dev // start the server in dev mode (nodemon)
+   npm start // start the server (reload if you change something)
+   npm run dev // start the server in dev mode (nodemon will watch for changes)
    ```
 
 3. Open [http://localhost:3000](http://localhost:3000)
