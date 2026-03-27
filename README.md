@@ -14,7 +14,7 @@ A simple Node.js app using Express and MySQL to manage users, intended as a star
 
 ## Setup
 
-1. Set the `DB_URL` environment variable to your MySQL service URL. Please DO NOT store .env in your project repo (.gitignore it):
+1. Set the `DB_URL` environment variable to your MySQL service URL. Please DO NOT store a `.env` file in your project repo (.gitignore it):
 
    ```js
    DB_URL="mysql://<username>:<password>@<host>:<port>/<database_name>"
