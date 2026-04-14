@@ -20,7 +20,7 @@ const app = express();
 // Parse form data
 app.use(urlencoded({ extended: false }));
 
-// Use json middleware for API - testing only atm
+// Use json middleware for API - testing only at the moment
 app.use(json());
 
 // Set EJS as templating engine
@@ -45,6 +45,7 @@ app.use((req, res, next) => {
 // Create MySQL connection using DB_URL environment variable
 const db = createPool(dbUrl);
 
+// ToDo: Change this to something more secure
 function md5(password) {
   return createHash('md5').update(password).digest('hex');
 }
@@ -76,6 +77,7 @@ app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
+// ToDo: Move the controller and routing logic to different files to keep things clean.
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {

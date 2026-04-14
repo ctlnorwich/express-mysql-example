@@ -26,7 +26,7 @@ A simple Node.js app using Express and MySQL to manage users, intended as a star
    npm install // install all dependencies. Make sure your node_modules folder is .gitignored!
    // then...
    npm start // start the server (reload if you change something)
-   npm run dev // start the server in dev mode (nodemon will watch for changes)
+   npm run dev // start the server in dev mode (uses Node's new --watch flag so you can make changes without restarting)
    ```
 
 3. Open [http://localhost:3000](http://localhost:3000)
