@@ -105,7 +105,7 @@ app.get('/', requireLogin, (req, res) => {
     res.render('index', { users: rows, userName: req.session.userName });
   } catch (err) {
     console.error(err);
-    return res.status(500).send('Database error');
+    return res.status(500).send('Database error: ' + err);
   }
 });
 
@@ -116,7 +116,7 @@ app.get('/api', (req, res) => {
     res.json({ users: rows, userName: req.session.userName });
   } catch (err) {
     console.error(err);
-    return res.status(500).send('Database error');
+    return res.status(500).send('Database error: ' + err);
   }
 });
 
