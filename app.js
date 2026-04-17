@@ -1,19 +1,16 @@
 import express, { json, urlencoded } from 'express';
 import session from 'express-session';
-import { createPool } from 'mysql2/promise';
+import { DatabaseSync } from 'node:sqlite';
 import { loadEnvFile } from 'node:process';
 import { createHash, randomBytes } from 'node:crypto';
 
-
-try {
-  loadEnvFile();
-} catch (e) {
-  if (e.code !== 'ENOENT') {
-    throw e;
-  }
-}
-
-const dbUrl = process.env.DB_URL || "";
+// try {
+//   loadEnvFile();
+// } catch (e) {
+//   if (e.code !== 'ENOENT') {
+//     throw e;
+//   }
+// }
 
 const app = express();
 
@@ -42,8 +39,8 @@ app.use((req, res, next) => {
     next();
 });
 
-// Create MySQL connection using DB_URL environment variable
-const db = createPool(dbUrl);
+// Create SQLite database
+const db = new DatabaseSync(process.env.DB_PATH || 'database.sqlite');
 
 // ToDo: Change this to something more secure
 function md5(password) {
@@ -52,12 +49,12 @@ function md5(password) {
 
 // Create users table if it doesn't exist
 try {
-  await db.query(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS users (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      password VARCHAR(32) NOT NULL
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      password TEXT NOT NULL
     )
   `);
   console.log('Users table ready');
@@ -78,18 +75,18 @@ app.get('/login', (req, res) => {
 });
 
 // ToDo: Move the controller and routing logic to different files to keep things clean.
-app.post('/login', async (req, res) => {
+app.post('/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.render('login', { error: 'Email and password are required' });
   }
   try {
-    const [rows] = await db.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, md5(password)]);
-    if (rows.length === 0) {
+    const row = db.prepare('SELECT * FROM users WHERE email = ? AND password = ?').get(email, md5(password));
+    if (!row) {
       return res.render('login', { error: 'Invalid email or password' });
     }
-    req.session.userId = rows[0].id;
-    req.session.userName = rows[0].name;
+    req.session.userId = row.id;
+    req.session.userName = row.name;
     res.redirect('/');
   } catch (err) {
     console.error(err);
@@ -102,10 +99,9 @@ app.post('/logout', (req, res) => {
 });
 
 // Home - List all users (uses requireLogin middleware)
-app.get('/', requireLogin, async (req, res) => {
+app.get('/', requireLogin, (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM users ORDER BY id DESC');
-
+    const rows = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
     res.render('index', { users: rows, userName: req.session.userName });
   } catch (err) {
     console.error(err);
@@ -114,10 +110,9 @@ app.get('/', requireLogin, async (req, res) => {
 });
 
 // Home API - List all users
-app.get('/api', async (req, res) => {
+app.get('/api', (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM users ORDER BY id DESC');
-
+    const rows = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
     res.json({ users: rows, userName: req.session.userName });
   } catch (err) {
     console.error(err);
@@ -127,14 +122,14 @@ app.get('/api', async (req, res) => {
 
 
 // Add a new user
-app.post('/add', async (req, res) => {
+app.post('/add', (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).send('Name, email, and password are required');
   }
   try {
     const hashedPassword = md5(password);
-    await db.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
+    db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)').run(name, email, hashedPassword);
     res.redirect('/');
   } catch (err) {
     console.error(err);
@@ -144,7 +139,7 @@ app.post('/add', async (req, res) => {
 
 
 // Add a new user API
-app.post('/api/add', async (req, res) => {
+app.post('/api/add', (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({
@@ -153,11 +148,11 @@ app.post('/api/add', async (req, res) => {
   }
   try {
     const hashedPassword = md5(password);
-    const [result] = await db.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
+    const result = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)').run(name, email, hashedPassword);
     return res.status(201).json({
       message: 'User created successfully',
       user: {
-        id: result.insertId,
+        id: result.lastInsertRowid,
         name,
         email,
       },
@@ -170,13 +165,13 @@ app.post('/api/add', async (req, res) => {
 
 
 // Delete a user
-app.post('/delete/:id', async (req, res) => {
+app.post('/delete/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).send('Invalid ID');
   }
   try {
-    await db.query('DELETE FROM users WHERE id = ?', [id]);
+    db.prepare('DELETE FROM users WHERE id = ?').run(id);
     res.redirect('/');
   } catch (err) {
     console.error(err);
