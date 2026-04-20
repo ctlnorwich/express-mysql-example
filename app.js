@@ -33,13 +33,13 @@ app.use(session({
 }));
 
 // Example middleware to check response headers (not needed - just for testing)
-app.use((req, res, next) => {
-    res.on('finish', () => {
-        console.log(`request url = ${req.originalUrl}`);
-        console.log(res.getHeaders());
-    });
-    next();
-});
+// app.use((req, res, next) => {
+//     res.on('finish', () => {
+//         console.log(`request url = ${req.originalUrl}`);
+//         console.log(res.getHeaders());
+//     });
+//     next();
+// });
 
 // Construct our SQLite database instance using a file
 const db = new DatabaseSync(process.env.DB_PATH || 'database.sqlite');
@@ -124,7 +124,7 @@ app.post('/logout', (req, res) => {
 // @route GET /
 app.get('/', requireLogin, (req, res) => {
   try {
-    const rows = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
+    const rows = db.prepare('SELECT id, name, email FROM users ORDER BY id DESC').all();
     res.render('index', { users: rows, userName: req.session.userName });
   } catch (err) {
     console.error(err);
@@ -137,11 +137,11 @@ app.get('/', requireLogin, (req, res) => {
 // @route GET /api
 app.get('/api', (req, res) => {
   try {
-    const rows = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
+    const rows = db.prepare('SELECT id, name, email FROM users ORDER BY id DESC').all();
     res.status(200).json({ users: rows });
   } catch (err) {
     console.error(err);
-    return res.status(500).send('Database error: ' + err);
+    return res.status(500).send('Database error');
   }
 });
 
@@ -192,9 +192,9 @@ app.post('/api/add', (req, res) => {
 });
 
 
-// @desc Delete a single user
-// @route GET /delete/:id
-app.post('/delete/:id', (req, res) => {
+// @desc Delete a single user - user must be logged in with a valid session!
+// @route POST /delete/:id
+app.post('/delete/:id', requireLogin, (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).send('Invalid ID');
