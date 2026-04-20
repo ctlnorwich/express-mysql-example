@@ -120,6 +120,7 @@ app.post('/logout', (req, res) => {
 
 
 // @desc Get a list of users and display the main page - user must be logged in with a valid session!
+// Note that the userName (current user's name) is retrieved from the current session data
 // @route GET /
 app.get('/', requireLogin, (req, res) => {
   try {
@@ -132,12 +133,12 @@ app.get('/', requireLogin, (req, res) => {
 });
 
 
-// @desc Get a list of users via the API - note that the userName (current user's name) is retrieved from the current session data
+// @desc Get a list of users via the API
 // @route GET /api
 app.get('/api', (req, res) => {
   try {
     const rows = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
-    res.status(200).json({ users: rows, userName: req.session.userName });
+    res.status(200).json({ users: rows });
   } catch (err) {
     console.error(err);
     return res.status(500).send('Database error: ' + err);
@@ -154,6 +155,7 @@ app.post('/add', (req, res) => {
   }
   try {
     const hashedPassword = md5(password);
+    // Note the question marks here - those anonymous paramaters are replaced by the values of 'id, email and hashedPassword' in the run() method.
     db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)').run(name, email, hashedPassword);
     res.redirect('/');
   } catch (err) {
