@@ -1,4 +1,4 @@
-# Express MySQL Users App
+# Express SQLite Users App
 
 A simple Node.js app using Express and SQLite to manage users, intended as a starting point for learning about how Express works with databases. The application allows anyone to create an account and delete all users including themselves! It should be extended to include user permissions, form validation and enhanced password security.
 
