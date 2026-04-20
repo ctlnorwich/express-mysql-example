@@ -4,13 +4,14 @@ import { DatabaseSync } from 'node:sqlite';
 import { loadEnvFile } from 'node:process';
 import { createHash, randomBytes } from 'node:crypto';
 
-// try {
-//   loadEnvFile();
-// } catch (e) {
-//   if (e.code !== 'ENOENT') {
-//     throw e;
-//   }
-// }
+// Check if there is a .env file.
+try {
+  loadEnvFile();
+} catch (e) {
+  if (e.code !== 'ENOENT') {
+    throw e;
+  }
+}
 
 // Create our express app and store it in the 'app' variable
 const app = express();
