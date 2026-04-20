@@ -8,13 +8,13 @@ A simple Node.js app using Express and SQLite to manage users, intended as a sta
 - EJS templating engine to demonstrate how to generate html markup using server-side views. This could be replaced with API endpoints for use with a seperate front end (e.g. React).
 - Native `node:sqlite` module for managing a local SQLite database file - simple and no dependencies but some limitations.
 - Simple authentication using `express-session`.
-- MD5 password hashing using `note:crypto` (this should be swapped out for something more robust, such as sha256 or bcrypt).
+- MD5 password hashing using `node:crypto` (this should be swapped out for something more robust, such as sha256 or bcrypt).
 - Doesn't use TypeScript, but could easily be adapted to do so - this would be a useful excercise!
 - Basic API endpoints for listing and adding users.
 
 ## Setup
 
-1. Check the name of your database file in `app.js`. You can specify 
+1. Check the name of your database file in `app.js`. You can specify a different database file name by adding it to an optional .env file.
 
 2. Install dependencies and start the server:
 
@@ -25,6 +25,6 @@ A simple Node.js app using Express and SQLite to manage users, intended as a sta
    npm run dev // start the server in dev mode (uses Node's new --watch flag so you can make changes without restarting)
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000)
+3. Open [http://localhost:3000](http://localhost:3000) or the forwarded address if using Codespaces.
 
 The `users` table is created automatically on first run.
