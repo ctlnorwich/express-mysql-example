@@ -12,25 +12,26 @@ import { createHash, randomBytes } from 'node:crypto';
 //   }
 // }
 
+// Create our express app and store it in the 'app' variable
 const app = express();
 
-// Parse form data
+// Middleware to parse form data from the forms in our .ejs files
 app.use(urlencoded({ extended: false }));
 
-// Use json middleware for API - testing only at the moment
+// Use json middleware for API - testing only at the moment (not used for our .ejs templates)
 app.use(json());
 
-// Set EJS as templating engine
+// Set EJS as templating engine to use with our views
 app.set('view engine', 'ejs');
 
-// Session middleware
+// Session middleware - generate a random secret for our session id
 app.use(session({
   secret: randomBytes(32).toString('hex'),
   resave: false,
   saveUninitialized: false,
 }));
 
-// Middleware to check response headers
+// Example middleware to check response headers (not needed - just for testing)
 app.use((req, res, next) => {
     res.on('finish', () => {
         console.log(`request url = ${req.originalUrl}`);
@@ -39,15 +40,16 @@ app.use((req, res, next) => {
     next();
 });
 
-// Create SQLite database
+// Construct our SQLite database instance using a file
 const db = new DatabaseSync(process.env.DB_PATH || 'database.sqlite');
 
-// ToDo: Change this to something more secure
+// MD5 encryption for our passwords
+// ToDo: Change this to something more secure!
 function md5(password) {
   return createHash('md5').update(password).digest('hex');
 }
 
-// Create users table if it doesn't exist
+// Create users table if it doesn't exist - runs first time our app starts
 try {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -63,23 +65,37 @@ try {
   process.exit(1);
 }
 
-// Custom middleware for authentication
+// Custom middleware for authentication - does the user have an active session?
 function requireLogin(req, res, next) {
   if (req.session.userId) return next();
   res.redirect('/login');
 }
 
-// Login page
+// ToDo: Ideally, move the controller and routing logic to different files to keep things clean!
+// NOTE: You can only use the GET and POST http methods with HTML forms. This works (e.g. use POST to delete), but is not as clear.
+// The more specific methods, PUT, PATCH and DELETE can be used by replacing an HTML form submission with JavaScript FormData and the Fetch API. 
+
+// ROUTES WITH CONTROLLER LOGIC BELOW:
+
+// @desc Render the login page
+// @route GET /login
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-// ToDo: Move the controller and routing logic to different files to keep things clean.
+// @desc Login page form action to log in to the app
+// @route POST /login
 app.post('/login', (req, res) => {
+  // Get email and password from the request body (sent via the form)
   const { email, password } = req.body;
+
+  // If no email for password send error data to be displayed on the login page 
   if (!email || !password) {
     return res.render('login', { error: 'Email and password are required' });
   }
+
+  // Try to match the login data with a database query.
+  // If the user exists and the password is correct, create a user session and redirect to the home page
   try {
     const row = db.prepare('SELECT * FROM users WHERE email = ? AND password = ?').get(email, md5(password));
     if (!row) {
@@ -94,11 +110,16 @@ app.post('/login', (req, res) => {
   }
 });
 
+
+// @desc Form action to log out of the app, destroy the user session and redirect back to login.
+// @route POST /logout
 app.post('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
-// Home - List all users (uses requireLogin middleware)
+
+// @desc Get a list of users and display the main page - user must be logged in with a valid session!
+// @route GET /
 app.get('/', requireLogin, (req, res) => {
   try {
     const rows = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
@@ -109,11 +130,13 @@ app.get('/', requireLogin, (req, res) => {
   }
 });
 
-// Home API - List all users
+
+// @desc Get a list of users via the API - note that the userName (current user's name) is retrieved from the current session data
+// @route GET /api
 app.get('/api', (req, res) => {
   try {
     const rows = db.prepare('SELECT * FROM users ORDER BY id DESC').all();
-    res.json({ users: rows, userName: req.session.userName });
+    res.status(200).json({ users: rows, userName: req.session.userName });
   } catch (err) {
     console.error(err);
     return res.status(500).send('Database error: ' + err);
@@ -121,7 +144,8 @@ app.get('/api', (req, res) => {
 });
 
 
-// Add a new user
+// @desc Add a single user
+// @route POST /add
 app.post('/add', (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
@@ -138,7 +162,8 @@ app.post('/add', (req, res) => {
 });
 
 
-// Add a new user API
+// @desc Add a single user via the API
+// @route POST /api/add
 app.post('/api/add', (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
@@ -164,13 +189,15 @@ app.post('/api/add', (req, res) => {
 });
 
 
-// Delete a user
+// @desc Delete a single user
+// @route GET /delete/:id
 app.post('/delete/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).send('Invalid ID');
   }
   try {
+    // Note the question mark here - that's anonymous paramater is replaced by the value of 'id' in the run() method.
     db.prepare('DELETE FROM users WHERE id = ?').run(id);
     res.redirect('/');
   } catch (err) {
@@ -179,10 +206,12 @@ app.post('/delete/:id', (req, res) => {
   }
 });
 
+// If none of the above routes are hit, the server will end up running this middleware, which displays a basic 404 message.
 app.use((req, res, next) => {
   res.status(404).send("<h1>404: Sorry, that resource doesn't exist!</h1>")
 })
 
+// This runs the the Express server (defualts to running on port 3000)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
