@@ -214,7 +214,7 @@ app.use((req, res, next) => {
   res.status(404).send("<h1>404: Sorry, that resource doesn't exist!</h1>")
 })
 
-// This runs the the Express server (defualts to running on port 3000)
+// IMPORTANT! The listen() method returns the Express server so you can run your app (defualts to running on port 3000)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
