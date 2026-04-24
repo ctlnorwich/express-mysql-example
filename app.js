@@ -155,7 +155,7 @@ app.post('/add', (req, res) => {
   }
   try {
     const hashedPassword = md5(password);
-    // Note the question marks here - those anonymous paramaters are replaced by the values of 'id, email and hashedPassword' in the run() method.
+    // Note the question marks here - those anonymous parameters are replaced by the values of 'id, email and hashedPassword' in the run() method.
     db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)').run(name, email, hashedPassword);
     res.redirect('/');
   } catch (err) {
@@ -200,7 +200,7 @@ app.post('/delete/:id', requireLogin, (req, res) => {
     return res.status(400).send('Invalid ID');
   }
   try {
-    // Note the question mark here - that's anonymous paramater is replaced by the value of 'id' in the run() method.
+    // Note the question mark here - that anonymous parameter is replaced by the value of 'id' in the run() method.
     db.prepare('DELETE FROM users WHERE id = ?').run(id);
     res.redirect('/');
   } catch (err) {
@@ -210,6 +210,7 @@ app.post('/delete/:id', requireLogin, (req, res) => {
 });
 
 // If none of the above routes are hit, the server will end up running this middleware, which displays a basic 404 message.
+// You could render an ejs template here instead.
 app.use((req, res, next) => {
   res.status(404).send("<h1>404: Sorry, that resource doesn't exist!</h1>")
 })
