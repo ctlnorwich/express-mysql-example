@@ -45,3 +45,4 @@ yarn.lock
 # MySQL dumps or local DB files
 *.sql
 *.db
+*.sqlite
